@@ -5,6 +5,11 @@ APP_NAME="MacToDo"
 BUILD_DIR=".build/release"
 APP_BUNDLE="$APP_NAME.app"
 DMG_NAME="$APP_NAME.dmg"
+LOG_FILE=${LOG_FILE:-"build_app.log"}
+
+mkdir -p "$(dirname "$LOG_FILE")"
+echo -e "\n===== $(date '+%Y-%m-%d %H:%M:%S') Start build =====" | tee -a "$LOG_FILE"
+exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Generate Logo
 echo "🎨 Generating Logo..."
@@ -79,4 +84,12 @@ echo "💿 Creating DMG..."
 rm -f "$DMG_NAME"
 hdiutil create -volname "$APP_NAME" -srcfolder "$APP_BUNDLE" -ov -format UDZO "$DMG_NAME"
 
+if command -v shasum >/dev/null 2>&1; then
+    echo "🧮 Calculating SHA256..."
+    shasum -a 256 "$DMG_NAME" | awk '{print $1}' > "$DMG_NAME.sha256"
+else
+    echo "⚠️ shasum 未找到，跳过 SHA256 计算"
+fi
+
 echo "✅ Done! App is at $APP_BUNDLE and Installer is $DMG_NAME"
+echo "===== Build finished ====="
