@@ -1,8 +1,11 @@
-import XCTest
+import Testing
 @testable import MacToDo
 import CoreData
+import Foundation
 
-final class SortingTests: XCTestCase {
+@MainActor
+struct SortingTests {
+    @Test
     func testDueDateAscendingSort() throws {
         let pc = PersistenceController(inMemory: true)
         let ctx = pc.container.viewContext
@@ -15,8 +18,8 @@ final class SortingTests: XCTestCase {
         try ctx.save()
         let items = [a, b, c]
         let sorted = sortTasks(items, by: .dueDateAsc)
-        XCTAssertEqual(sorted.first?.title, "B")
-        XCTAssertEqual(sorted[1].title, "A")
-        XCTAssertEqual(sorted.last?.title, "C")
+        #expect(sorted.first?.title == "B")
+        #expect(sorted[1].title == "A")
+        #expect(sorted.last?.title == "C")
     }
 }

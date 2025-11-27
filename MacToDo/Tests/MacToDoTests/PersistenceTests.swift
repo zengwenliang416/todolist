@@ -1,8 +1,10 @@
-import XCTest
+import Testing
 @testable import MacToDo
 import CoreData
 
-final class PersistenceTests: XCTestCase {
+@MainActor
+struct PersistenceTests {
+    @Test
     func testCreateAndFetchTasks() throws {
         let pc = PersistenceController(inMemory: true)
         let ctx = pc.container.viewContext
@@ -22,10 +24,22 @@ final class PersistenceTests: XCTestCase {
             NSSortDescriptor(keyPath: \TaskItem.createdAt, ascending: false)
         ]
         let result = try ctx.fetch(req)
-        XCTAssertEqual(result.count, 3)
-        XCTAssertTrue(result.first?.isCompleted == false)
+        #expect(result.count == 3)
+        // Note: Sort logic check
+        // i=0: completed=true, created=base
+        // i=1: completed=false, created=base+10
+        // i=2: completed=false, created=base+20
+        // Sort: isCompleted asc (false first), createdAt desc (newest first)
+        // Expected order:
+        // 1. completed=false, created=base+20 (i=2)
+        // 2. completed=false, created=base+10 (i=1)
+        // 3. completed=true, created=base (i=0)
+        
+        #expect(result.first?.isCompleted == false)
+        #expect(result.first?.title == "T2")
     }
 
+    @Test
     func testCategoryFilter() throws {
         let pc = PersistenceController(inMemory: true)
         let ctx = pc.container.viewContext
@@ -38,24 +52,29 @@ final class PersistenceTests: XCTestCase {
         let req = NSFetchRequest<TaskItem>(entityName: "TaskItem")
         req.predicate = NSPredicate(format: "category == %@", "Work")
         let result = try ctx.fetch(req)
-        XCTAssertEqual(result.count, 1)
-        XCTAssertEqual(result.first?.category, "Work")
+        #expect(result.count == 1)
+        #expect(result.first?.category == "Work")
     }
 
+    @Test
     func testUniqueIDConstraint() throws {
         let pc = PersistenceController(inMemory: true)
         let ctx = pc.container.viewContext
+        // Set strict merge policy to detect constraint violations
+        ctx.mergePolicy = NSErrorMergePolicy
+        
         let id = UUID()
         let a = TaskItem(context: ctx)
         a.id = id; a.title = "A"; a.createdAt = Date()
         try ctx.save()
         let b = TaskItem(context: ctx)
         b.id = id; b.title = "B"; b.createdAt = Date()
+        
         do {
             try ctx.save()
-            XCTFail("Expected unique constraint violation")
+            #expect(Bool(false), "Expected unique constraint violation")
         } catch {
-            XCTAssertTrue(true)
+            // Success: error caught
         }
     }
 }
