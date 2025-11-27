@@ -1,9 +1,8 @@
 import SwiftUI
 
 enum AppTheme {
-
     // MARK: - Colors
-
+    
     static let background = Color(NSColor.windowBackgroundColor)
     static let secondaryBackground = Color(NSColor.controlBackgroundColor)
     static let tertiaryBackground = Color(NSColor.alternatingContentBackgroundColors[1])
