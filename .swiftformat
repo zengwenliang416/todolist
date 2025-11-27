@@ -1,0 +1,8 @@
+--wraparguments preserve
+--wrapcollections preserve
+--commas always
+--stripunusedargs closure-only
+--trimwhitespace always
+--indent 4
+--binarygrouping 4
+--decimalgrouping 3

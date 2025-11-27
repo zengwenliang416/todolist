@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Detect Swift Version
+        id: swiftver
+        run: |
+          SV=$(swift --version | head -n1 | sed -E 's/.*version ([0-9\.]+).*/\1/')
+          echo "swift_short=$SV" >> "$GITHUB_OUTPUT"
+      - name: Cache SwiftPM build
+        uses: actions/cache@v3
+        with:
+          path: |
+            MacToDo/.build
+          key: ${{ runner.os }}-spm-${{ steps.swiftver.outputs.swift_short }}-${{ hashFiles('MacToDo/Package.swift') }}
+      - name: Install SwiftFormat and SwiftLint
+        run: |
+          brew update
+          brew install swiftformat swiftlint
+      - name: SwiftFormat check
+        run: swiftformat MacToDo/Sources MacToDo/Tests --lint --report=colored --config .swiftformat --swiftversion ${{ steps.swiftver.outputs.swift_short }}
+      - name: SwiftLint
+        run: swiftlint --strict --reporter github-actions || swiftlint --reporter github-actions
+      - name: Build
+        working-directory: MacToDo
+        run: swift build --configuration debug
+      - name: Test
+        working-directory: MacToDo
+        run: swift test --enable-code-coverage
+      - name: Detect Changed Files
+        if: github.event_name == 'pull_request'
+        id: changed
+        uses: tj-actions/changed-files@v45
+        with:
+          fetch_depth: 0
+      - name: Enforce CHANGELOG update on PR
+        if: github.event_name == 'pull_request'
+        run: |
+          CHANGED=$(printf "%s\n" "${{ steps.changed.outputs.all_changed_files }}")
+          if echo "$CHANGED" | grep -E '^(MacToDo/Package.swift|MacToDo/Sources/|MacToDo/Resources/|MacToDo/scripts/)'; then
+            if echo "$CHANGED" | grep -q '^CHANGELOG.md$'; then
+              echo "CHANGELOG updated: OK"
+            else
+              echo "CHANGELOG.md not updated for source changes" >&2
+              exit 1
+            fi
+          else
+            echo "No source-level changes detected; skipping CHANGELOG enforcement"
+          fi
+      - name: Compute and enforce coverage
+        working-directory: MacToDo
+        run: |
+          PROFILE=$(find .build -name "*.profdata" | head -n1 || true)
+          BINARIES=$(find .build -type f \( -name MacToDo -o -name "*.xctest" \) | tr '\n' ' ')
+          if [ -n "$PROFILE" ] && [ -n "$BINARIES" ]; then
+            xcrun llvm-cov report $BINARIES --instr-profile "$PROFILE" > coverage.txt || true
+            if grep -q '^TOTAL' coverage.txt; then
+              PCT=$(grep -E '^TOTAL' coverage.txt | awk '{print $NF}' | sed 's/%//')
+              THRESH=60
+              FAIL=$(awk -v p="$PCT" -v t="$THRESH" 'BEGIN{if (p+0 < t) print 1; else print 0}')
+              echo "Coverage: ${PCT}% (threshold ${THRESH}%)"
+              if [ "$FAIL" = "1" ]; then
+                echo "Coverage below threshold" >&2
+                exit 1
+              fi
+            else
+              echo "Coverage report not generated; skipping enforcement"
+            fi
+          else
+            echo "Profile or binaries not found; skipping coverage enforcement"
+          fi
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: MacToDo/coverage.txt
+      - name: Package DMG
+        if: github.event_name != 'pull_request'
+        working-directory: MacToDo
+        run: bash scripts/build_app.sh
+      - name: Upload App Bundle
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacToDo-app
+          path: MacToDo/MacToDo.app
+      - name: Upload DMG Installer
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacToDo-dmg
+          path: MacToDo/MacToDo.dmg
+      - name: Compute SHA256
+        if: github.event_name != 'pull_request'
+        run: |
+          shasum -a 256 MacToDo/MacToDo.dmg | awk '{print $1}' > MacToDo/MacToDo.dmg.sha256
+      - name: Upload DMG SHA256
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacToDo-dmg-sha256
+          path: MacToDo/MacToDo.dmg.sha256
+      - name: Prepare Release Notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [ -f CHANGELOG.md ]; then
+            START_LINE=$(grep -n -E "^##[[:space:]]*\\[?${TAG}\\]?" CHANGELOG.md | head -n1 | cut -d: -f1 || true)
+            if [ -n "$START_LINE" ]; then
+              tail -n +"$START_LINE" CHANGELOG.md | awk 'NR==1{next} /^##[[:space:]]*\[/ {exit} {print}' > release_notes.txt
+            else
+              head -n 200 CHANGELOG.md > release_notes.txt
+            fi
+          else
+            echo "Release $TAG" > release_notes.txt
+          fi
+          if [ -f MacToDo/MacToDo.dmg ]; then
+            SUM=$(shasum -a 256 MacToDo/MacToDo.dmg | awk '{print $1}')
+            {
+              echo ""
+              echo "SHA256: $SUM"
+            } >> release_notes.txt
+          fi
+      - name: Append Build Metadata
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          SWIFT_VER=$(swift --version | head -n1)
+          XCODE_VER=$(xcodebuild -version | head -n1 || echo "Xcode: N/A")
+          MACOS_VER=$(sw_vers -productVersion)
+          NOW_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          DMG_SIZE_BYTES=$(stat -f "%z" MacToDo/MacToDo.dmg 2>/dev/null || echo "")
+          {
+            echo ""
+            echo "Build Metadata:"
+            echo "- Swift: $SWIFT_VER"
+            echo "- Xcode: $XCODE_VER"
+            echo "- macOS: $MACOS_VER"
+            echo "- Time (UTC): $NOW_UTC"
+            if [ -n "$DMG_SIZE_BYTES" ]; then
+              echo "- DMG Size: ${DMG_SIZE_BYTES} bytes"
+            fi
+          } >> release_notes.txt
+      - name: Create GitHub Release and Upload DMG
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          name: MacToDo ${{ github.ref_name }}
+          files: |
+            MacToDo/MacToDo.dmg
+            MacToDo/MacToDo.dmg.sha256
+          body_path: release_notes.txt
+          draft: false
+          prerelease: false

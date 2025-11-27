@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Environment secrets
+.env
+.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# SwiftPM / Xcode (project uses SwiftPM-first)
+MacToDo/.build/
+MacToDo/.swiftpm/
+MacToDo/DerivedData/
+MacToDo/xcuserdata/
+MacToDo/Packages/
+
+# Build artifacts
+MacToDo/MacToDo.app/
+MacToDo/MacToDo.dmg
+MacToDo/Resources/AppIcon.icns
+
+# Local reports & CI temp files
+coverage.txt
+release_notes.txt
+MacToDo/coverage.txt
+MacToDo/release_notes.txt

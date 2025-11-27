@@ -1,0 +1,12 @@
+## 项目概览
+- 名称：MacToDo，一款原生 macOS 待办事项应用（SwiftUI + Core Data）
+- 目标：提供任务增删改查、分类、到期提醒、暗色模式等桌面体验，并可打包为 .app/.dmg 发布
+- 技术栈：Swift 5.9、SwiftUI、Combine/Swift State、Core Data（程序化 NSPersistentContainer）、SFSymbols、脚本使用 Bash + Python3
+- 结构：
+  - `Sources/`：Swift 代码（`MacToDoApp.swift` 入口，`Model/TaskItem.swift` 数据模型，`Persistence.swift` Core Data 栈，`Views/` 包含 Content/Sidebar/TaskList 等视图与 `Theme.swift` 样式）
+  - `Resources/`：图标资源（`MacToDo.iconset` -> AppIcon.icns）
+  - `scripts/`：`build_app.sh` 打包脚本、`generate_logo.py` 图标生成
+  - `docs/`：文档/截图（需按需查看）
+  - 根目录含 `Package.swift` (SPM 配置)、`README.md` (构建说明)、生成产物 `MacToDo.app`、`MacToDo.dmg`
+- 运行入口：`MacToDoApp` 使用 `PersistenceController.shared` 注入 `ContentView`，主界面为 `NavigationView` + `SidebarView` + `TaskListView`
+- 数据模型：`TaskItem` NSManagedObject 包含 id/title/isCompleted/dueDate/category/createdAt，并提供 wrapped 属性供 UI 使用
