@@ -7,3 +7,6 @@
 
 ### Tests
 - 迁移 PersistenceTests、SortingTests 至 Swift Testing 框架，并补充 ViewModelTests 覆盖排序、筛选与增删逻辑。
+
+### Docs
+- 新增 docs/optimization/* 报告，沉淀架构重构、性能优化与交付结果。
