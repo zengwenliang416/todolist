@@ -1,5 +1,5 @@
-import Foundation
 import CoreData
+import Foundation
 
 @objc(TaskItem)
 public class TaskItem: NSManagedObject {
@@ -16,7 +16,7 @@ extension TaskItem: Identifiable {
     public var wrappedTitle: String {
         title ?? "New Task"
     }
-    
+
     public var wrappedCategory: String {
         category ?? "Personal"
     }

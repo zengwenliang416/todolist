@@ -6,8 +6,8 @@ enum TaskCategory: String, CaseIterable, Identifiable {
     case work = "Work"
     case learning = "Learning"
     case shopping = "Shopping"
-    
-    var id: String { self.rawValue }
+
+    var id: String { rawValue }
     var icon: String {
         switch self {
         case .all: return "sparkles"
@@ -17,7 +17,7 @@ enum TaskCategory: String, CaseIterable, Identifiable {
         case .shopping: return "cart"
         }
     }
-    
+
     var color: Color {
         switch self {
         case .all: return AppTheme.Palette.blue
@@ -27,16 +27,14 @@ enum TaskCategory: String, CaseIterable, Identifiable {
         case .shopping: return AppTheme.Palette.green
         }
     }
-    
+
     // Legacy property for compatibility if needed, but we should use `color`
-    var highlightColor: Color {
-        return color.opacity(0.2)
-    }
+    var highlightColor: Color { color.opacity(0.2) }
 }
 
 struct SidebarView: View {
     @Binding var selection: TaskCategory?
-    
+
     var body: some View {
         List(selection: $selection) {
             Section("Library") {
@@ -45,7 +43,7 @@ struct SidebarView: View {
                         .padding(.vertical, 4)
                 }
             }
-            
+
             Section("Categories") {
                 ForEach(TaskCategory.allCases.filter { $0 != .all }) { category in
                     NavigationLink(value: category) {

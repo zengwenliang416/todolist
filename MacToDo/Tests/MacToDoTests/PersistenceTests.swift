@@ -1,14 +1,14 @@
-import Testing
-@testable import MacToDo
 import CoreData
+@testable import MacToDo
+import Testing
 
 @MainActor
 struct PersistenceTests {
     @Test
-    func testCreateAndFetchTasks() throws {
+    func createAndFetchTasks() throws {
         let pc = PersistenceController(inMemory: true)
         let ctx = pc.container.viewContext
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             let t = TaskItem(context: ctx)
             t.id = UUID()
             t.title = "T\(i)"
@@ -21,7 +21,7 @@ struct PersistenceTests {
         let req = NSFetchRequest<TaskItem>(entityName: "TaskItem")
         req.sortDescriptors = [
             NSSortDescriptor(keyPath: \TaskItem.isCompleted, ascending: true),
-            NSSortDescriptor(keyPath: \TaskItem.createdAt, ascending: false)
+            NSSortDescriptor(keyPath: \TaskItem.createdAt, ascending: false),
         ]
         let result = try ctx.fetch(req)
         #expect(result.count == 3)
@@ -34,13 +34,13 @@ struct PersistenceTests {
         // 1. completed=false, created=base+20 (i=2)
         // 2. completed=false, created=base+10 (i=1)
         // 3. completed=true, created=base (i=0)
-        
+
         #expect(result.first?.isCompleted == false)
         #expect(result.first?.title == "T2")
     }
 
     @Test
-    func testCategoryFilter() throws {
+    func categoryFilter() throws {
         let pc = PersistenceController(inMemory: true)
         let ctx = pc.container.viewContext
         let a = TaskItem(context: ctx)
@@ -57,19 +57,19 @@ struct PersistenceTests {
     }
 
     @Test
-    func testUniqueIDConstraint() throws {
+    func uniqueIDConstraint() throws {
         let pc = PersistenceController(inMemory: true)
         let ctx = pc.container.viewContext
         // Set strict merge policy to detect constraint violations
         ctx.mergePolicy = NSErrorMergePolicy
-        
+
         let id = UUID()
         let a = TaskItem(context: ctx)
         a.id = id; a.title = "A"; a.createdAt = Date()
         try ctx.save()
         let b = TaskItem(context: ctx)
         b.id = id; b.title = "B"; b.createdAt = Date()
-        
+
         do {
             try ctx.save()
             #expect(Bool(false), "Expected unique constraint violation")

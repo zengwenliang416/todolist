@@ -1,10 +1,9 @@
 import SwiftUI
-import os
 
 struct TaskRowView: View {
     @ObservedObject var item: TaskItem
     var onToggle: () -> Void
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Checkbox
@@ -14,13 +13,13 @@ struct TaskRowView: View {
                     .foregroundColor(item.isCompleted ? AppTheme.accent : AppTheme.secondaryText)
             }
             .buttonStyle(.plain)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.wrappedTitle)
                     .appFont(size: 16, weight: .medium)
                     .strikethrough(item.isCompleted)
                     .foregroundColor(item.isCompleted ? AppTheme.secondaryText : AppTheme.primaryText)
-                
+
                 if let date = item.dueDate {
                     HStack(spacing: 4) {
                         Image(systemName: "calendar")
@@ -31,9 +30,9 @@ struct TaskRowView: View {
                     .foregroundColor(isOverdue ? .red : .secondary)
                 }
             }
-            
+
             Spacer()
-            
+
             if let categoryName = item.category, let cat = TaskCategory(rawValue: categoryName) {
                 Text(cat.rawValue)
                     .font(.caption)
@@ -49,12 +48,12 @@ struct TaskRowView: View {
         .padding(.horizontal)
         .padding(.vertical, 4)
     }
-    
+
     private var isOverdue: Bool {
         guard let date = item.dueDate else { return false }
         return date < Date() && !item.isCompleted
     }
-    
+
     private func toggleCompletion() {
         withAnimation(.spring()) {
             onToggle()

@@ -1,5 +1,4 @@
 import CoreData
-import SwiftUI
 
 /// A repository that handles all Core Data operations for TaskItems.
 class TaskRepository {
@@ -41,7 +40,7 @@ class TaskRepository {
         item.isCompleted.toggle()
         save()
     }
-    
+
     /// Updates the task details.
     @MainActor
     func updateTask(_ item: TaskItem, title: String, date: Date?) {

@@ -1,19 +1,18 @@
-import SwiftUI
 import CoreData
-import Observation
+import SwiftUI
 
 struct TaskListView: View {
     @State private var viewModel: TaskListViewModel
     @State private var showAddTask = false
-    
+
     init(category: TaskCategory) {
         _viewModel = State(initialValue: TaskListViewModel(category: category))
     }
-    
+
     var body: some View {
         ZStack {
             AppTheme.background.ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
                 // Header & Controls
                 VStack(spacing: 12) {
@@ -22,7 +21,7 @@ struct TaskListView: View {
                             .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundColor(AppTheme.primaryText)
                         Spacer()
-                        
+
                         Menu {
                             Picker("Sort", selection: $viewModel.sortOption) {
                                 Text("Default").tag(SortOption.default)
@@ -34,7 +33,7 @@ struct TaskListView: View {
                         }
                         .menuStyle(.borderlessButton)
                     }
-                    
+
                     // Search Bar
                     HStack {
                         Image(systemName: "magnifyingglass")
@@ -50,14 +49,14 @@ struct TaskListView: View {
                 .padding(.horizontal)
                 .padding(.top, 20)
                 .padding(.bottom, 10)
-                
+
                 // List
                 TaskFilteredList(viewModel: viewModel) {
                     showAddTask = true
                 }
             }
             .padding(.bottom, 0)
-            
+
             // Floating Add Button
             VStack {
                 Spacer()

@@ -3,7 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var selection: TaskCategory? = .all
     @State private var columnVisibility = NavigationSplitViewVisibility.all
-    
+
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView(selection: $selection)

@@ -1,23 +1,23 @@
-import SwiftUI
 import CoreData
+import SwiftUI
 
 struct TaskFilteredList: View {
     @FetchRequest var items: FetchedResults<TaskItem>
     var viewModel: TaskListViewModel
     var onAddTask: () -> Void
-    
+
     init(viewModel: TaskListViewModel, onAddTask: @escaping () -> Void = {}) {
         self.viewModel = viewModel
         self.onAddTask = onAddTask
-        
+
         let request = NSFetchRequest<TaskItem>(entityName: "TaskItem")
         request.sortDescriptors = viewModel.sortDescriptors
         request.predicate = viewModel.predicate
-        
+
         // Use FetchRequest to automatically fetch and update
         _items = FetchRequest(fetchRequest: request)
     }
-    
+
     var body: some View {
         if items.isEmpty {
             if #available(macOS 14.0, *) {
@@ -43,7 +43,7 @@ struct TaskFilteredList: View {
                     Text("No tasks found")
                         .appFont(size: 20, weight: .medium)
                         .foregroundColor(AppTheme.secondaryText)
-                    
+
                     if viewModel.searchText.isEmpty {
                         Button("Add Task", action: onAddTask)
                             .buttonStyle(.bordered)
@@ -57,23 +57,25 @@ struct TaskFilteredList: View {
                     TaskRowView(item: item, onToggle: {
                         viewModel.toggleCompletion(item)
                     })
-                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .contextMenu {
-                            Button(role: .destructive) {
-                                viewModel.delete(item)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                            
-                            Button {
-                                viewModel.toggleCompletion(item)
-                            } label: {
-                                Label(item.isCompleted ? "Mark as Incomplete" : "Mark as Complete", 
-                                      systemImage: item.isCompleted ? "circle" : "checkmark")
-                            }
+                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            viewModel.delete(item)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
+
+                        Button {
+                            viewModel.toggleCompletion(item)
+                        } label: {
+                            Label(
+                                item.isCompleted ? "Mark as Incomplete" : "Mark as Complete",
+                                systemImage: item.isCompleted ? "circle" : "checkmark"
+                            )
+                        }
+                    }
                 }
             }
             .listStyle(.plain)

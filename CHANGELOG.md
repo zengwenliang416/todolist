@@ -10,3 +10,6 @@
 
 ### Docs
 - 新增 docs/optimization/* 报告，沉淀架构重构、性能优化与交付结果。
+
+### Fixed
+- 调整 Source 与 Test 目录 Swift 代码的 import 顺序、命名与空白符，满足 SwiftFormat lint 要求。
