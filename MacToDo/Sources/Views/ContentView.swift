@@ -2,25 +2,21 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selection: TaskCategory? = .all
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
     
     var body: some View {
-        NavigationView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView(selection: $selection)
-            
-            // Default View (Initial Detail)
-            TaskListView(category: .all)
-        }
-        .frame(minWidth: 700, minHeight: 400)
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button(action: toggleSidebar) {
-                    Image(systemName: "sidebar.left")
-                }
+                .navigationTitle("MacToDo")
+        } detail: {
+            if let category = selection {
+                TaskListView(category: category)
+                    .id(category) // Ensure ViewModel is recreated when category changes
+            } else {
+                Text("Select a category")
+                    .foregroundColor(.secondary)
             }
         }
-    }
-    
-    private func toggleSidebar() {
-        NSApp.keyWindow?.firstResponder?.tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
+        .frame(minWidth: 700, minHeight: 400)
     }
 }

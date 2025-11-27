@@ -3,7 +3,6 @@ import UserNotifications
 import os
 
 struct AddTaskView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.presentationMode) var presentationMode
     private let logger = Logger(subsystem: "com.example.mactodo", category: "AddTask")
     
@@ -12,152 +11,110 @@ struct AddTaskView: View {
     @State private var hasDueDate = false
     @State private var dueDate = Date()
     
-    init(defaultCategory: TaskCategory) {
+    private let repository: TaskRepository
+    
+    init(defaultCategory: TaskCategory, repository: TaskRepository = TaskRepository()) {
         _category = State(initialValue: defaultCategory)
+        self.repository = repository
     }
     
     var body: some View {
-        ZStack {
-            // Glass Background
-            Rectangle().fill(.regularMaterial).ignoresSafeArea()
-            Color.white.opacity(0.1).ignoresSafeArea()
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("New Task")
+                    .font(.system(size: 20, weight: .bold))
+                Spacer()
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .keyboardShortcut(.cancelAction)
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor))
             
-            VStack(spacing: 24) {
-                Text("New Scribble")
-                    .sketchFont(size: 24, weight: .bold)
-                    .foregroundColor(SketchTheme.pencilGraphite)
-                    .padding(.bottom, 10)
-                    .background(
-                        SketchTheme.highlighterPink
-                            .mask(Rectangle().padding(.top, 20))
-                    )
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("What needs doing?")
-                        .sketchFont(size: 14, weight: .medium)
-                        .foregroundColor(SketchTheme.pencilGray)
-                    
-                    TextField("E.g., Buy sketchpad", text: $title)
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .padding(12)
-                        .glassySketchStyle()
-                        .sketchFont(size: 16)
+            Divider()
+            
+            // Form Content
+            Form {
+                Section {
+                    TextField("What needs to be done?", text: $title)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 16))
+                        .padding(.vertical, 8)
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Category")
-                        .sketchFont(size: 14, weight: .medium)
-                        .foregroundColor(SketchTheme.pencilGray)
-                    
+                Section {
                     Picker("Category", selection: $category) {
                         ForEach(TaskCategory.allCases.filter { $0 != .all }) { cat in
-                            Text(cat.rawValue).tag(cat)
+                            Label(cat.rawValue, systemImage: cat.icon)
+                                .tag(cat)
                         }
                     }
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity)
-                    .padding(8)
-                    .glassySketchStyle()
+                    .pickerStyle(.menu)
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    Toggle("Set Deadline", isOn: $hasDueDate)
-                        .toggleStyle(SwitchToggleStyle(tint: SketchTheme.marginPink))
-                        .sketchFont(size: 16, weight: .medium)
+                Section {
+                    Toggle("Due Date", isOn: $hasDueDate)
                     
                     if hasDueDate {
-                        DatePicker("Due Date", selection: $dueDate, displayedComponents: [.date, .hourAndMinute])
-                            .datePickerStyle(CompactDatePickerStyle())
-                            .labelsHidden()
-                            .padding(8)
-                            .glassySketchStyle()
+                        DatePicker("Date", selection: $dueDate, displayedComponents: [.date, .hourAndMinute])
                     }
                 }
-                
-                HStack(spacing: 16) {
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                        Text("Scrap It")
-                            .sketchFont(size: 16, weight: .medium)
-                            .foregroundColor(SketchTheme.pencilGray)
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 20)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(SketchTheme.pencilGray, style: StrokeStyle(lineWidth: 2, dash: [5, 5]))
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .keyboardShortcut(.cancelAction)
-                    
-                    Button(action: addTask) {
-                        Text("Pin It")
-                            .sketchFont(size: 16, weight: .bold)
-                            .foregroundColor(.white)
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 24)
-                            .background(
-                                ZStack {
-                                    if !title.isEmpty {
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(SketchTheme.pencilGraphite)
-                                            .opacity(0.8) // Slightly transparent for glass feel
-                                        // Scribble effect
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(SketchTheme.pencilGraphite, lineWidth: 2)
-                                            .offset(x: 2, y: 2)
-                                    } else {
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.gray.opacity(0.3))
-                                    }
-                                }
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .disabled(title.isEmpty)
-                    .keyboardShortcut(.defaultAction)
-                }
-                .padding(.top, 10)
             }
-            .padding(32)
-            .frame(width: 400) // Fixed width for dialog feel
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.background)
+            
+            Divider()
+            
+            // Footer
+            HStack {
+                Spacer()
+                Button(action: addTask) {
+                    Text("Add Task")
+                        .bold()
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor))
         }
         .frame(width: 400, height: 450)
     }
     
     private func addTask() {
-        let newTask = TaskItem(context: viewContext)
-        newTask.id = UUID()
-        newTask.title = title
-        newTask.isCompleted = false
-        newTask.createdAt = Date()
-        newTask.category = category.rawValue
-        
-        if hasDueDate {
-            newTask.dueDate = dueDate
-            scheduleNotification(for: newTask)
-        }
-        
-        do {
-            try viewContext.save()
+        withAnimation {
+            let date = hasDueDate ? dueDate : nil
+            let newItem = repository.addTask(title: title, category: category, date: date)
+            
+            if hasDueDate {
+                scheduleNotification(for: newItem)
+            }
+            
             presentationMode.wrappedValue.dismiss()
-        } catch {
-            logger.error("Error saving task: \(String(describing: error))")
         }
     }
     
-    private func scheduleNotification(for task: TaskItem) {
-        guard let date = task.dueDate, date > Date() else { return }
-        
-        let content = UNMutableNotificationContent()
-        content.title = "Reminder: \(task.wrappedTitle)"
-        content.body = "It's time to tackle this task!"
-        content.sound = .default
-        
-        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-        
-        let request = UNNotificationRequest(identifier: task.id?.uuidString ?? UUID().uuidString, content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request)
+    private func scheduleNotification(for item: TaskItem) {
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if granted {
+                let content = UNMutableNotificationContent()
+                content.title = "Task Reminder"
+                content.body = item.wrappedTitle
+                content.sound = .default
+                
+                let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: self.dueDate)
+                let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+                
+                let request = UNNotificationRequest(identifier: item.id?.uuidString ?? UUID().uuidString, content: content, trigger: trigger)
+                center.add(request)
+            }
+        }
     }
 }

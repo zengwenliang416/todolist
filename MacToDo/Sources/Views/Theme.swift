@@ -1,88 +1,71 @@
 import SwiftUI
 
-struct SketchTheme {
-    // Paper Colors
-    static let paperBackground = Color(red: 0.99, green: 0.98, blue: 0.96) // Warm Paper
-    static let lineBlue = Color(red: 0.8, green: 0.85, blue: 0.9) // Notebook Line Blue
-    static let marginPink = Color(red: 1.0, green: 0.8, blue: 0.8) // Notebook Margin Pink
+struct AppTheme {
+    // MARK: - Colors
+    static let background = Color(NSColor.windowBackgroundColor)
+    static let secondaryBackground = Color(NSColor.controlBackgroundColor)
+    static let tertiaryBackground = Color(NSColor.alternatingContentBackgroundColors[1])
     
-    // Pencil Colors
-    static let pencilGraphite = Color(red: 0.25, green: 0.25, blue: 0.28)
-    static let pencilGray = Color(red: 0.5, green: 0.5, blue: 0.55)
+    static let primaryText = Color.primary
+    static let secondaryText = Color.secondary
     
-    // Highlighter Colors
-    static let highlighterYellow = Color(red: 1.0, green: 0.95, blue: 0.4, opacity: 0.6)
-    static let highlighterPink = Color(red: 1.0, green: 0.6, blue: 0.8, opacity: 0.6)
-    static let highlighterBlue = Color(red: 0.4, green: 0.8, blue: 1.0, opacity: 0.6)
+    static let accent = Color.accentColor
     
-    // Fonts
-    // Using "Chalkboard SE" or "Bradley Hand" for that sketchy look
-    static let fontName = "ChalkboardSE-Regular"
-    static let fontBoldName = "ChalkboardSE-Bold"
+    // Custom Palette
+    struct Palette {
+        static let blue = Color.blue
+        static let purple = Color.purple
+        static let pink = Color.pink
+        static let orange = Color.orange
+        static let green = Color.green
+        static let gray = Color.gray
+    }
     
-    // Modifiers
-    struct SketchFont: ViewModifier {
+    // MARK: - Typography
+    struct AppFont: ViewModifier {
         var size: CGFloat
         var weight: Font.Weight
+        var design: Font.Design
         
         func body(content: Content) -> some View {
-            // Mapping weight roughly since custom fonts handle weight differently
-            let name = (weight == .bold || weight == .heavy || weight == .black) ? SketchTheme.fontBoldName : SketchTheme.fontName
-            return content.font(.custom(name, size: size))
+            content.font(.system(size: size, weight: weight, design: design))
         }
     }
     
-    // A shaky border effect
-    struct SketchyBorder: ViewModifier {
+    // MARK: - Styles
+    struct CardStyle: ViewModifier {
         func body(content: Content) -> some View {
             content
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(SketchTheme.pencilGraphite, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round, dash: [50, 5], dashPhase: 2))
-                        .opacity(0.7)
-                )
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(12)
+                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
         }
     }
-
-    // iOS 26 Glass Texture (Glassmorphism + Sketch)
-    struct GlassyEffect: ViewModifier {
+    
+    struct GlassyCardStyle: ViewModifier {
         func body(content: Content) -> some View {
             content
                 .background(.ultraThinMaterial)
-                .background(Color.white.opacity(0.1))
-                .cornerRadius(16)
-                .shadow(color: Color.black.opacity(0.15), radius: 15, x: 0, y: 8)
-                // Inner Glass Shine
+                .cornerRadius(12)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
-                        .padding(1)
-                )
-                // Sketchy Border on top of Glass
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(SketchTheme.pencilGraphite, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round, dash: [30, 10], dashPhase: Double.random(in: 0...10)))
-                        .opacity(0.6)
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
                 )
         }
     }
 }
 
 extension View {
-    func sketchFont(size: CGFloat = 16, weight: Font.Weight = .regular) -> some View {
-        self.modifier(SketchTheme.SketchFont(size: size, weight: weight))
+    func appFont(size: CGFloat = 16, weight: Font.Weight = .regular, design: Font.Design = .rounded) -> some View {
+        self.modifier(AppTheme.AppFont(size: size, weight: weight, design: design))
     }
     
-    func sketchyBorder() -> some View {
-        self.modifier(SketchTheme.SketchyBorder())
+    func cardStyle() -> some View {
+        self.modifier(AppTheme.CardStyle())
     }
     
-    func glassySketchStyle() -> some View {
-        self.modifier(SketchTheme.GlassyEffect())
-    }
-    
-    func notebookStyle() -> some View {
-        self
-            .background(SketchTheme.paperBackground)
+    func glassyCardStyle() -> some View {
+        self.modifier(AppTheme.GlassyCardStyle())
     }
 }

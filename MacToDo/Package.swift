@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "MacToDo",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v14)
     ],
     products: [
         .executable(name: "MacToDo", targets: ["MacToDo"])
