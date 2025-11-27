@@ -31,7 +31,11 @@ jobs:
       - name: SwiftFormat check
         run: swiftformat MacToDo/Sources MacToDo/Tests --lint --report=colored --config .swiftformat --swiftversion ${{ steps.swiftver.outputs.swift_short }}
       - name: SwiftLint
-        run: swiftlint --strict --reporter github-actions || swiftlint --reporter github-actions
+        run: |
+          swiftlint --strict --reporter github-actions-logging \
+            || swiftlint --reporter github-actions-logging \
+            || swiftlint --strict \
+            || swiftlint
       - name: Build
         working-directory: MacToDo
         run: swift build --configuration debug
