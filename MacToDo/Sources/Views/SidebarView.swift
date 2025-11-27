@@ -10,21 +10,31 @@ enum TaskCategory: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var icon: String {
         switch self {
-        case .all: return "sparkles"
-        case .personal: return "person"
-        case .work: return "briefcase"
-        case .learning: return "book"
-        case .shopping: return "cart"
+        case .all:
+            "sparkles"
+        case .personal:
+            "person"
+        case .work:
+            "briefcase"
+        case .learning:
+            "book"
+        case .shopping:
+            "cart"
         }
     }
 
     var color: Color {
         switch self {
-        case .all: return AppTheme.Palette.blue
-        case .personal: return AppTheme.Palette.pink
-        case .work: return AppTheme.Palette.orange
-        case .learning: return AppTheme.Palette.purple
-        case .shopping: return AppTheme.Palette.green
+        case .all:
+            AppTheme.Palette.blue
+        case .personal:
+            AppTheme.Palette.pink
+        case .work:
+            AppTheme.Palette.orange
+        case .learning:
+            AppTheme.Palette.purple
+        case .shopping:
+            AppTheme.Palette.green
         }
     }
 

@@ -19,18 +19,18 @@ class TaskListViewModel {
     var sortDescriptors: [NSSortDescriptor] {
         switch sortOption {
         case .default:
-            return [
+            [
                 NSSortDescriptor(keyPath: \TaskItem.isCompleted, ascending: true),
                 NSSortDescriptor(keyPath: \TaskItem.createdAt, ascending: false),
                 NSSortDescriptor(keyPath: \TaskItem.title, ascending: true),
             ]
         case .dueDateAsc:
-            return [
+            [
                 NSSortDescriptor(keyPath: \TaskItem.dueDate, ascending: true),
                 NSSortDescriptor(keyPath: \TaskItem.title, ascending: true),
             ]
         case .createdDesc:
-            return [
+            [
                 NSSortDescriptor(keyPath: \TaskItem.createdAt, ascending: false),
                 NSSortDescriptor(keyPath: \TaskItem.title, ascending: true),
             ]

@@ -54,22 +54,22 @@ struct PersistenceController {
         // Entity-level indexes
         let idIndex = NSFetchIndexDescription(
             name: "idx_TaskItem_id",
-            elements: [NSFetchIndexElementDescription(property: idAttr, collationType: .binary)]
+            elements: [NSFetchIndexElementDescription(property: idAttr, collationType: .binary)],
         )
         let categoryIndex = NSFetchIndexDescription(
             name: "idx_TaskItem_category",
-            elements: [NSFetchIndexElementDescription(property: categoryAttr, collationType: .binary)]
+            elements: [NSFetchIndexElementDescription(property: categoryAttr, collationType: .binary)],
         )
         let dueDateIndex = NSFetchIndexDescription(
             name: "idx_TaskItem_dueDate",
-            elements: [NSFetchIndexElementDescription(property: dateAttr, collationType: .binary)]
+            elements: [NSFetchIndexElementDescription(property: dateAttr, collationType: .binary)],
         )
         let statusCreatedAtIndex = NSFetchIndexDescription(
             name: "idx_TaskItem_status_createdAt",
             elements: [
                 NSFetchIndexElementDescription(property: isCompletedAttr, collationType: .binary),
                 NSFetchIndexElementDescription(property: createdAtAttr, collationType: .binary),
-            ]
+            ],
         )
         taskItemEntity.indexes = [idIndex, categoryIndex, dueDateIndex, statusCreatedAtIndex]
 
@@ -90,7 +90,7 @@ struct PersistenceController {
             ] as NSDictionary, forKey: NSSQLitePragmasOption)
         }
 
-        container.loadPersistentStores(completionHandler: { (_, error) in
+        container.loadPersistentStores(completionHandler: { _, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }

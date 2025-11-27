@@ -72,7 +72,7 @@ struct TaskFilteredList: View {
                         } label: {
                             Label(
                                 item.isCompleted ? "Mark as Incomplete" : "Mark as Complete",
-                                systemImage: item.isCompleted ? "circle" : "checkmark"
+                                systemImage: item.isCompleted ? "circle" : "checkmark",
                             )
                         }
                     }

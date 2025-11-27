@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum AppTheme {
+
     // MARK: - Colors
 
     static let background = Color(NSColor.windowBackgroundColor)
@@ -35,6 +36,7 @@ enum AppTheme {
     }
 
     // MARK: - Styles
+
     struct CardStyle: ViewModifier {
         func body(content: Content) -> some View {
             content
@@ -52,7 +54,7 @@ enum AppTheme {
                 .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1),
                 )
         }
     }
